@@ -1,50 +1,47 @@
 package storage
 
 import (
+	"bytes"
 	"errors"
 	"os"
 )
 
 type Interface interface {
-	Get() (string, error)
-	Set(value string) error
+	Get() ([]byte, error)
+	Set(value []byte) error
 }
 
 type Storage struct {
-	File   string
-	value  string
-	loaded bool
+	File  string
+	value []byte
 }
 
-func (storage Storage) Get() (string, error) {
-	if storage.loaded == false {
-		storage.loaded = true
-		if _, err := os.Stat(storage.File); errors.Is(err, os.ErrNotExist) {
-			return "", nil
+func (storage *Storage) Get() ([]byte, error) {
+	if storage.value == nil {
+		_, err := os.Stat(storage.File)
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
 		}
 
-		data, err := os.ReadFile(storage.File)
+		storage.value, err = os.ReadFile(storage.File)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
-
-		storage.value = string(data)
 	}
 
 	return storage.value, nil
 }
 
-func (storage *Storage) Set(value string) error {
-	if storage.loaded && storage.value == value {
+func (storage *Storage) Set(value []byte) error {
+	if bytes.Equal(storage.value, value) {
 		return nil
 	}
 
-	err := os.WriteFile(storage.File, []byte(value), 0644)
+	err := os.WriteFile(storage.File, value, 0644)
 	if err != nil {
 		return err
 	}
 
 	storage.value = value
-	storage.loaded = true
 	return nil
 }

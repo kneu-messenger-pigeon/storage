@@ -1,4 +1,4 @@
-module github.com/kneu-messenger-pigeon/storage
+module github.com/kneu-messenger-pigeon/fileStorage
 
 go 1.19
 

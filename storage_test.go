@@ -8,9 +8,9 @@ import (
 
 func TestStorageGet(t *testing.T) {
 	filename := "storage-read-test.txt"
-	expectedString := "read-value-from-storage"
+	expected := []byte("read-value-from-storage")
 
-	err := os.WriteFile(filename, []byte(expectedString), 0644)
+	err := os.WriteFile(filename, expected, 0644)
 	defer os.Remove(filename)
 	assert.NoErrorf(t, err, `Failed to write test file "%s" %s`, filename, err)
 
@@ -18,9 +18,9 @@ func TestStorageGet(t *testing.T) {
 		File: filename,
 	}
 
-	actualString, err := storage.Get()
+	actual, err := storage.Get()
 	assert.NoErrorf(t, err, `storage.Get("") failed: file to read storage file: %s`, err)
-	assert.Equalf(t, expectedString, actualString, "Expected %s, actual data in file: %s", expectedString, actualString)
+	assert.Equalf(t, expected, actual, "Expected %s, actual data in file: %s", expected, actual)
 }
 
 func TestStorageGetNotExistsFile(t *testing.T) {
@@ -40,7 +40,7 @@ func TestStorageGetNotExistsFile(t *testing.T) {
 
 func TestStorageSet(t *testing.T) {
 	filename := "storage-Set-test.txt"
-	expectedString := "Set-value-to-storage"
+	expected := []byte("Set-value-to-storage")
 
 	storage := Storage{
 		File: filename,
@@ -49,27 +49,26 @@ func TestStorageSet(t *testing.T) {
 	defer os.Remove(filename)
 
 	for i := 1; i < 3; i++ {
-		err := storage.Set(expectedString)
+		err := storage.Set(expected)
 
 		assert.NoErrorf(t, err, `storage.Set("") failed: %v`, err)
 		assert.FileExists(t, filename, `Storage file not exists after execute storage.Set("")`)
 
 		actualData, err := os.ReadFile(filename)
-		actualString := string(actualData)
 		assert.NoErrorf(t, err, `storage.Set("") failed: file to read storage file: %s`, err)
-		assert.Equalf(t, expectedString, actualString, "Data in file is not match with excpected value: %s != %s", expectedString, actualString)
+		assert.Equalf(t, expected, actualData, "Data in file is not match with excpected value: %s != %s", expected, actualData)
 	}
 }
 
 func TestStorageGetSet(t *testing.T) {
 	filename := "storage-Get-Set-test.txt"
-	expectedString := "Set-value-to-Get-from-storage"
+	expected := []byte("Set-value-to-Get-from-storage")
 
 	storage := Storage{
 		File: filename,
 	}
 
-	err := storage.Set(expectedString)
+	err := storage.Set(expected)
 	defer os.Remove(filename)
 	assert.NoErrorf(t, err, `storage.Set("") failed: %v`, err)
 
@@ -78,24 +77,24 @@ func TestStorageGetSet(t *testing.T) {
 		File: filename,
 	}
 
-	actualString, err := storage.Get()
+	actual, err := storage.Get()
 	assert.NoErrorf(t, err, `storage.Get("") failed: file to read storage file: %s`, err)
 	assert.Equalf(
-		t, expectedString, actualString,
+		t, expected, actual,
 		"Expected %s, actual data in file: %s",
-		expectedString, actualString,
+		expected, actual,
 	)
 }
 
 func TestStorageSetWithWrongPath(t *testing.T) {
 	filename := "not-exists-dir/not-exist/random\n&@random.txt"
-	expectedString := "Set-value-to-storage"
+	expected := []byte("Set-value-to-storage")
 
 	storage := Storage{
 		File: filename,
 	}
 
-	err := storage.Set(expectedString)
+	err := storage.Set(expected)
 
 	assert.Errorf(t, err, `storage.Set("") not failed`)
 	var PathError *os.PathError
