@@ -1,4 +1,4 @@
-package storage
+package fileStorage
 
 import (
 	"bytes"
